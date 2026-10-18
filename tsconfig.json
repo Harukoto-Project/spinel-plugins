@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "types": ["node"],
+    "paths": {
+      "@spinel/front": ["./types/front.d.ts"],
+      "@spinel/server": ["./types/server.d.ts"]
+    }
+  },
+  "include": ["types/**/*.d.ts", "plugins/*/src/**/*.ts", "plugins/*/src/**/*.tsx"]
+}
