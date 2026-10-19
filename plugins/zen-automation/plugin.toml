@@ -1,0 +1,31 @@
+id = "zen-automation"
+name = "ZEN Study Automation"
+version = "0.1.0"
+description = "ノード上の ZenStudy-Automation(Python + Playwright)を操作して、ログインやレポート視聴を実行する"
+spinel_api = 1
+
+[server]
+entry = "server/index.mjs"
+
+[front]
+entry = "front/index.js"
+
+[permissions]
+routes = true
+storage = true
+process = true
+
+[[settings]]
+key = "projectPath"
+type = "path"
+label = "ZenStudy-Automation のパス"
+description = "run_login.py と run_reports.py があるディレクトリ"
+default = "~/Documents/01_Projects/ZenStudy-Automation"
+required = true
+
+[[settings]]
+key = "pythonPath"
+type = "path"
+label = "Python 実行ファイル"
+description = "省略すると、プロジェクト内の .venv の Python を使う"
+required = false

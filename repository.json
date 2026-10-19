@@ -1,5 +1,13 @@
 {
   "schema": 1,
   "name": "Spinel Plugins",
-  "plugins": []
+  "plugins": [
+    {
+      "id": "zen-automation",
+      "path": "plugins/zen-automation",
+      "name": "ZEN Study Automation",
+      "description": "ノード上の ZenStudy-Automation を操作して、ログインやレポート視聴を実行する",
+      "version": "0.1.0"
+    }
+  ]
 }
