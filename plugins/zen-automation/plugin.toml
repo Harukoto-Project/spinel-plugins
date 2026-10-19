@@ -14,10 +14,15 @@ build = true
 [vars]
 systemPython = "python3"
 venvPython = "{source}/.venv/bin/python"
+chromeChannel = "chrome"
 
 [vars.windows]
 systemPython = "python"
+chromeChannel = "chromium"
 venvPython = '{source}\.venv\Scripts\python.exe'
+
+[vars.darwin]
+chromeChannel = "chromium"
 
 [[settings]]
 key = "googleEmail"
@@ -46,6 +51,12 @@ run = ["{venvPython}", "-m", "pip", "install", "-r", "requirements.txt"]
 id = "browser"
 label = "ブラウザ(Chromium)と必要なシステムライブラリをインストール"
 run = ["{venvPython}", "-m", "playwright", "install", "--with-deps", "chromium"]
+timeout = 3600
+
+[[setup]]
+id = "chrome"
+label = "Google Chrome をインストール(動画の再生に必要。Linux のみ)"
+run = ["{venvPython}", "-m", "playwright", "install", "{chromeChannel}"]
 timeout = 3600
 
 [[commands]]
@@ -101,6 +112,13 @@ key = "dryRun"
 type = "boolean"
 label = "対象の確認のみ(動画は再生しない)"
 flag = "--dry-run"
+
+[[commands.inputs]]
+key = "acceptNotice"
+type = "boolean"
+label = "禁止事項の同意画面に同意して開始する"
+description = "「必修授業の学習における禁止事項」の画面が出たときに、内容を確認したうえで自動的に同意する。オフのまま同意画面が出ると、実行は止まる"
+flag = "--accept-notice"
 
 [[commands]]
 id = "progress"
