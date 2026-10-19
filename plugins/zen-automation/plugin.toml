@@ -1,6 +1,6 @@
 id = "zen-automation"
 name = "ZEN Study Automation"
-version = "0.2.0"
+version = "0.2.1"
 description = "ZenStudy-Automation(Python + Playwright)をソースから取得して、ログインやレポート視聴を実行し、進行状況を確認する"
 spinel_api = 1
 
@@ -44,8 +44,9 @@ run = ["{venvPython}", "-m", "pip", "install", "-r", "requirements.txt"]
 
 [[setup]]
 id = "browser"
-label = "ブラウザ(Chromium)をインストール"
-run = ["{venvPython}", "-m", "playwright", "install", "chromium"]
+label = "ブラウザ(Chromium)と必要なシステムライブラリをインストール"
+run = ["{venvPython}", "-m", "playwright", "install", "--with-deps", "chromium"]
+timeout = 3600
 
 [[commands]]
 id = "login"
@@ -68,14 +69,14 @@ flag = "--force"
 key = "manualGoogle"
 type = "boolean"
 label = "Google のログインを手動で行う"
-description = "2段階認証などで止まる場合に使う。ブラウザが開くので、ノード上で操作する"
+description = "2段階認証などで止まる場合に使う。ブラウザが開くので、ノード上で操作する(画面のない Linux サーバーでは使えない)"
 flag = "--manual-google"
 
 [[commands.inputs]]
 key = "headless"
 type = "boolean"
 label = "ブラウザを表示しない"
-description = "初回や2段階認証のときはオフを推奨"
+description = "画面のない Linux サーバーではオンにする(オフだと表示先がなく起動に失敗する)。ブラウザを見ながら操作したいときだけオフ"
 flag = "--headless"
 
 [[commands]]
