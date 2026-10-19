@@ -6,8 +6,8 @@
       "id": "zen-automation",
       "path": "plugins/zen-automation",
       "name": "ZEN Study Automation",
-      "description": "ノード上の ZenStudy-Automation を操作して、ログインやレポート視聴を実行する",
-      "version": "0.1.0"
+      "description": "ZenStudy-Automation をソースから取得して、ログインやレポート視聴を実行し、進行状況を確認する",
+      "version": "0.2.0"
     }
   ]
 }

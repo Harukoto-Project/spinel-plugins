@@ -1,31 +1,285 @@
 id = "zen-automation"
 name = "ZEN Study Automation"
-version = "0.1.0"
-description = "ノード上の ZenStudy-Automation(Python + Playwright)を操作して、ログインやレポート視聴を実行する"
+version = "0.2.0"
+description = "ZenStudy-Automation(Python + Playwright)をソースから取得して、ログインやレポート視聴を実行し、進行状況を確認する"
 spinel_api = 1
 
-[server]
-entry = "server/index.mjs"
-
-[front]
-entry = "front/index.js"
+[source]
+repo = "Harukotokoto/ZenStudy-Automation"
 
 [permissions]
-routes = true
-storage = true
 process = true
+build = true
+
+[vars]
+systemPython = "python3"
+venvPython = "{source}/.venv/bin/python"
+
+[vars.windows]
+systemPython = "python"
+venvPython = '{source}\.venv\Scripts\python.exe'
 
 [[settings]]
-key = "projectPath"
-type = "path"
-label = "ZenStudy-Automation のパス"
-description = "run_login.py と run_reports.py があるディレクトリ"
-default = "~/Documents/01_Projects/ZenStudy-Automation"
-required = true
+key = "googleEmail"
+type = "string"
+label = "Google アカウント(メールアドレス)"
+description = "N高グループの Google アカウント。ログイン時に自動入力する。空の場合はログインに失敗する"
 
 [[settings]]
-key = "pythonPath"
-type = "path"
-label = "Python 実行ファイル"
-description = "省略すると、プロジェクト内の .venv の Python を使う"
-required = false
+key = "googlePassword"
+type = "secret"
+label = "Google パスワード"
+description = "上記アカウントのパスワード。ノードにだけ保存され、画面には再表示されない"
+
+[[setup]]
+id = "venv"
+label = "Python の仮想環境を作成"
+run = ["{systemPython}", "-m", "venv", ".venv"]
+skip_if_exists = ".venv"
+
+[[setup]]
+id = "deps"
+label = "依存パッケージをインストール"
+run = ["{venvPython}", "-m", "pip", "install", "-r", "requirements.txt"]
+
+[[setup]]
+id = "browser"
+label = "ブラウザ(Chromium)をインストール"
+run = ["{venvPython}", "-m", "playwright", "install", "chromium"]
+
+[[commands]]
+id = "login"
+label = "ログイン"
+description = "ZEN Study にログインして、セッションを保存する。保存済みのセッションがあれば何もしない"
+kind = "task"
+run = ["{venvPython}", "zen.py", "login"]
+env = { GOOGLE_EMAIL = "{setting.googleEmail}", GOOGLE_PASSWORD = "{setting.googlePassword}" }
+exclusive = "browser"
+timeout = 900
+
+[[commands.inputs]]
+key = "force"
+type = "boolean"
+label = "再ログインする"
+description = "保存済みのセッションがあっても、ログインし直す"
+flag = "--force"
+
+[[commands.inputs]]
+key = "manualGoogle"
+type = "boolean"
+label = "Google のログインを手動で行う"
+description = "2段階認証などで止まる場合に使う。ブラウザが開くので、ノード上で操作する"
+flag = "--manual-google"
+
+[[commands.inputs]]
+key = "headless"
+type = "boolean"
+label = "ブラウザを表示しない"
+description = "初回や2段階認証のときはオフを推奨"
+flag = "--headless"
+
+[[commands]]
+id = "reports"
+label = "レポートを視聴"
+description = "指定した月のレポート動画を、ブラウザを表示せずに自動で視聴する"
+kind = "task"
+run = ["{venvPython}", "zen.py", "reports", "--headless"]
+exclusive = "browser"
+
+[[commands.inputs]]
+key = "month"
+type = "choice"
+label = "対象の月"
+description = "未選択の場合は、マイコースにあるすべての月が対象になる"
+options = ["6", "7", "8", "9", "10", "11", "12"]
+arg = "--month"
+display = "buttons"
+
+[[commands.inputs]]
+key = "dryRun"
+type = "boolean"
+label = "対象の確認のみ(動画は再生しない)"
+flag = "--dry-run"
+
+[[commands]]
+id = "progress"
+label = "実行中の進行状況"
+description = "reports の進行状況を読み取る(ブラウザは開かない)"
+kind = "query"
+run = ["{venvPython}", "zen.py", "progress", "--json"]
+
+[[commands]]
+id = "times"
+label = "レポート全体の進捗"
+description = "月ごとの動画時間と視聴状況を取得する(ブラウザをヘッドレスで開く)"
+kind = "query"
+run = ["{venvPython}", "zen.py", "times", "--json"]
+timeout = 120
+
+[[panels]]
+id = "login"
+title = "ログイン"
+description = "Google アカウントでログインして、セッションを保存する"
+tab = "ログイン"
+type = "actions"
+commands = ["login"]
+settings = ["googleEmail", "googlePassword"]
+
+[[panels]]
+id = "login-console"
+title = "ログイン コンソール"
+tab = "ログイン"
+type = "console"
+commands = ["login"]
+
+[[panels]]
+id = "reports"
+title = "レポート視聴"
+description = "月を選んで実行すると、ブラウザを表示せずに視聴を始める"
+tab = "実行"
+type = "actions"
+commands = ["reports"]
+
+[[panels]]
+id = "progress"
+title = "進行状況"
+description = "直近の実行の状態。実行中は自動で更新される"
+tab = "実行"
+type = "status"
+query = "progress"
+interval = 3
+
+[[panels.widgets]]
+type = "badge"
+label = "状態"
+value = "status"
+labels = { running = "実行中", finished = "完了", failed = "失敗", interrupted = "中断", none = "履歴なし" }
+tones = { running = "info", finished = "success", failed = "danger", interrupted = "warning", none = "neutral" }
+
+[[panels.widgets]]
+type = "badge"
+label = "段階"
+value = "phase"
+labels = { starting = "開始中", checking_login = "ログイン確認", collecting = "対象の収集", planning = "計画の作成", processing = "視聴中", finished = "終了" }
+tones = { starting = "neutral", checking_login = "neutral", collecting = "info", planning = "info", processing = "info", finished = "success" }
+
+[[panels.widgets]]
+type = "stat"
+label = "経過時間"
+value = "{summary.elapsed_seconds|duration}"
+
+[[panels.widgets]]
+type = "stat"
+label = "終了予定"
+value = "{summary.eta_at|datetime}"
+
+[[panels.widgets]]
+type = "stat"
+label = "完了した教科"
+value = "{summary.subjects.done} / {summary.subjects.total}"
+
+[[panels.widgets]]
+type = "text"
+label = "実行中の教科"
+value = "{current.month} / {current.subject}"
+
+[[panels.widgets]]
+type = "text"
+label = "実行中の教材"
+value = "{current.item}"
+
+[[panels.widgets]]
+type = "progress"
+label = "再生中の動画"
+value = "current.video.percent"
+detail = "{current.video.title}({current.video.elapsed_seconds|duration} / {current.video.duration_seconds|duration})"
+
+[[panels.widgets]]
+type = "progress"
+label = "動画の進捗(今回の対象)"
+value = "summary.videos.percent"
+detail = "{summary.videos.completed_count} / {summary.videos.total_count} 本 ・ 残り {summary.videos.remaining_seconds|duration}"
+
+[[panels.widgets]]
+type = "table"
+label = "月ごと"
+rows = "months"
+empty = "実行履歴がありません"
+columns = [
+  { label = "月", value = "{title}" },
+  { label = "進捗", value = "{stats.percent|percent}" },
+  { label = "動画", value = "{stats.completed_count} / {stats.total_count} 本" },
+  { label = "残り", value = "{stats.remaining_seconds|duration}" },
+]
+
+[[panels.widgets]]
+type = "table"
+label = "保留中の教科(確認テストなど)"
+rows = "summary.on_hold"
+empty = "保留中の教科はありません"
+columns = [
+  { label = "月", value = "{month}" },
+  { label = "教科", value = "{subject}" },
+  { label = "教材", value = "{item}" },
+]
+
+[[panels.widgets]]
+type = "table"
+label = "失敗した教科"
+rows = "summary.failed"
+empty = "失敗した教科はありません"
+columns = [
+  { label = "月", value = "{month}" },
+  { label = "教科", value = "{subject}" },
+  { label = "理由", value = "{error}" },
+]
+
+[[panels]]
+id = "reports-console"
+title = "コンソール"
+description = "reports のログをリアルタイムで表示する"
+tab = "実行"
+type = "console"
+commands = ["reports"]
+
+[[panels]]
+id = "times"
+title = "レポート全体の進捗"
+description = "マイコースの月ごとの動画時間と視聴状況。開いたとき、または「更新」を押したときに取得する(reports の実行中は取得できない)"
+tab = "全体の進捗"
+type = "status"
+query = "times"
+interval = 0
+
+[[panels.widgets]]
+type = "progress"
+label = "必須動画の視聴済み"
+value = "times.main.percent"
+detail = "{times.main.passed_count} / {times.main.video_count} 本 ・ 視聴済み {times.main.passed_seconds|duration} / 全体 {times.main.total_seconds|duration}"
+
+[[panels.widgets]]
+type = "stat"
+label = "残りの動画時間(必須)"
+value = "{times.main.remaining_seconds|duration}"
+
+[[panels.widgets]]
+type = "stat"
+label = "残りの本数(必須)"
+value = "{times.main.remaining_count|number} 本"
+
+[[panels.widgets]]
+type = "text"
+label = "取得日時"
+value = "{generated_at|datetime}"
+
+[[panels.widgets]]
+type = "table"
+label = "月ごと(必須)"
+rows = "months"
+empty = "対象のレポートがありません"
+columns = [
+  { label = "月", value = "{year}年{month}月" },
+  { label = "進捗", value = "{times.main.percent|percent}" },
+  { label = "動画", value = "{times.main.passed_count} / {times.main.video_count} 本" },
+  { label = "残り", value = "{times.main.remaining_seconds|duration}" },
+]

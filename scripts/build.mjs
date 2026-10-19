@@ -91,7 +91,8 @@ async function buildPlugin({ id, dir }) {
   const frontEntry = findEntry(dir, FRONT_ENTRY_CANDIDATES);
   const serverEntry = findEntry(dir, SERVER_ENTRY_CANDIDATES);
   if (!frontEntry && !serverEntry) {
-    throw new Error(`${id}: src/front/index.tsx か src/server/index.ts のどちらかが必要です`);
+    console.log(`${id}: ビルド対象なし(plugin.toml の宣言のみ)`);
+    return;
   }
 
   const outputs = [];
