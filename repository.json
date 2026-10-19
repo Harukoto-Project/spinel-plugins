@@ -7,7 +7,7 @@
       "path": "plugins/zen-automation",
       "name": "ZEN Study Automation",
       "description": "ZenStudy-Automation をソースから取得して、ログインやレポート視聴を実行し、進行状況を確認する",
-      "version": "0.2.1"
+      "version": "0.2.2"
     }
   ]
 }

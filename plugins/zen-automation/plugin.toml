@@ -1,6 +1,6 @@
 id = "zen-automation"
 name = "ZEN Study Automation"
-version = "0.2.1"
+version = "0.2.2"
 description = "ZenStudy-Automation(Python + Playwright)をソースから取得して、ログインやレポート視聴を実行し、進行状況を確認する"
 spinel_api = 1
 
@@ -119,6 +119,7 @@ type = "boolean"
 label = "禁止事項の同意画面に同意して開始する"
 description = "「必修授業の学習における禁止事項」の画面が出たときに、内容を確認したうえで自動的に同意する。オフのまま同意画面が出ると、実行は止まる"
 flag = "--accept-notice"
+consent = "「必修授業の学習における禁止事項」の内容を確認しました。同意画面が表示された場合は、自分に代わって自動で同意することを承諾します。"
 
 [[commands]]
 id = "progress"
